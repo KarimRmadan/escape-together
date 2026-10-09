@@ -14,6 +14,8 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
+    // Verwaltet alle Spielpartien während der Laufzeit des Bots
+    private final GameService gameService = new GameService();
 
     public EscapeBot(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
@@ -40,6 +42,13 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 switch (message) {
                     case "/start" -> {
                        antwortText = "Willkommen bei Escape Together!";
+                    }
+                    case "/create" -> {
+                        // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
+                        GameSession session = gameService.createGame(chatId);
+                        String roomcode = session.getRoomCode();
+                        antwortText ="Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!"  ;
+
                     }
 
                     // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
