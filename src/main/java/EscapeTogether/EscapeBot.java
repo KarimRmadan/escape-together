@@ -10,8 +10,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
-// Implementierung des Clients zum Senden von Telegram-Nachrichten
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+
 
 public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
@@ -34,11 +33,31 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                 // Liest die Chat-ID aus, damit der Bot an den richtigen Chat antworten kann
                 Long chatId = update.getMessage().getChatId();
+                // Speichert den Antworttext abhängig vom eingegebenen Befehl
+
+                String antwortText;
+                // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
+                switch (message) {
+                    case "/start" -> {
+                       antwortText = "Willkommen bei Escape Together!";
+                    }
+
+                    // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
+                    case "/help" -> {
+                        antwortText = "Escape Together ist ein kooperativer Escape Room für zwei Spieler!";
+                    }
+
+                    // Gibt eine Standardantwort zurück, wenn kein bekannter Befehl eingegeben wurde
+                    default -> {
+                        antwortText = "Unbekannter Befehl";
+                    }
+
+                }
 
                 // Erstellt ein neues Nachrichtenobjekt für die Antwort des Bots
                 SendMessage antwort = SendMessage.builder()
                         .chatId(chatId)
-                        .text("Willkommen bei Escape Together!" )
+                        .text(antwortText )
                         .build();
 
                 // Versendet die erstellte Antwort über den Telegram-Client
