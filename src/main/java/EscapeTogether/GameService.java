@@ -1,0 +1,39 @@
+package EscapeTogether;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+public class GameService {
+    // Speichert alle Spielpartien anhand ihrer eindeutigen Raumcodes
+    private final Map<String, GameSession> sessions = new HashMap<>();
+
+
+    public GameSession createGame(Long chatId) {
+
+        // Erzeugt einen zufälligen vierstelligen Raumcode für die neue Partie
+        String roomCode = UUID.randomUUID().toString().substring(0, 4);
+
+        // Erzeugt bei einer Überschneidung einen neuen Raumcode
+        while (sessions.containsKey(roomCode)) {
+            roomCode = UUID.randomUUID().toString().substring(0, 4);
+        }
+
+        // Speichert die neue Spielpartie unter ihrem Raumcode in der HashMap
+        GameSession session = new GameSession(chatId, roomCode);
+
+        sessions.put(roomCode, session);
+        return session;
+    }
+
+    // Ermöglicht einem zweiten Spieler, einer bestehenden Partie beizutreten
+    // Gibt zurück, ob der Beitritt erfolgreich war
+    public boolean joinGame (String roomCode, Long chatId){
+            GameSession session = sessions.get(roomCode);
+            if (session != null){
+            return session.joinGame(chatId);
+        }
+        return false;
+    }
+
+}
