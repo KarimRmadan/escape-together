@@ -1,21 +1,26 @@
 package EscapeTogether;
 
-import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
+import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import java.util.List;
 
-public class EscapeBot implements LongPollingSingleThreadUpdateConsumer {
+public class EscapeBot implements LongPollingUpdateConsumer {
 
-    //consume verarbeitet eingehende Telegram-Updates
     @Override
-    public void consume(Update update) {
+    public void consume(List<Update> updates) {
 
-        //hasMessage prüft, ob eine Nachricht vorhanden ist
-        //hasText prüft, ob die Nachricht Text enthält
-        if (update.hasMessage() && update.getMessage().hasText()) {
+        // Alle empfangenen Updates nacheinander durchgehen
+        for (Update update : updates) {
 
-            String message = update.getMessage().getText();
+            // Prüfen, ob das Update eine Nachricht mit Text enthält
+            if (update.hasMessage() && update.getMessage().hasText()) {
 
-            System.out.println("Nachricht empfangen: " + message);
+                // Text aus der Telegram-Nachricht auslesen
+                String message = update.getMessage().getText();
+
+                // Empfangene Nachricht in der Konsole ausgeben
+                System.out.println("Nachricht empfangen: " + message);
+            }
         }
     }
 }
