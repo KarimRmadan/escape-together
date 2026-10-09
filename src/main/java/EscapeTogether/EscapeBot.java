@@ -7,6 +7,7 @@ import java.util.List;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 // Interface für die Kommunikation mit der Telegram-API
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 // Implementierung des Clients zum Senden von Telegram-Nachrichten
@@ -30,6 +31,22 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                 // Text aus der Telegram-Nachricht auslesen
                 String message = update.getMessage().getText();
+
+                // Liest die Chat-ID aus, damit der Bot an den richtigen Chat antworten kann
+                Long chatId = update.getMessage().getChatId();
+
+                // Erstellt ein neues Nachrichtenobjekt für die Antwort des Bots
+                SendMessage antwort = SendMessage.builder()
+                        .chatId(chatId)
+                        .text("Willkommen bei Escape Together!" )
+                        .build();
+
+                // Versendet die erstellte Antwort über den Telegram-Client
+                try {
+                    telegramClient.execute(antwort);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
 
                 // Empfangene Nachricht in der Konsole ausgeben
                 System.out.println("Nachricht empfangen: " + message);
