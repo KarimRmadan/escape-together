@@ -3,8 +3,21 @@ package EscapeTogether;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import java.util.List;
+// Importiert die Klasse zum Erstellen ausgehender Telegram-Nachrichten
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+
+// Interface für die Kommunikation mit der Telegram-API
+import org.telegram.telegrambots.meta.generics.TelegramClient;
+
+// Implementierung des Clients zum Senden von Telegram-Nachrichten
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 public class EscapeBot implements LongPollingUpdateConsumer {
+    private final TelegramClient telegramClient;
+
+    public EscapeBot(TelegramClient telegramClient) {
+        this.telegramClient = telegramClient;
+    }
 
     @Override
     public void consume(List<Update> updates) {

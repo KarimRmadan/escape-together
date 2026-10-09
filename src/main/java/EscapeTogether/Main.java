@@ -1,7 +1,8 @@
 package EscapeTogether;
 // Importiert die Klasse zum Starten und Verwalten der Telegram-Bot-Verbindung
-
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
+
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 
 public class Main {
     public static void main(String[] args) {
@@ -19,9 +20,12 @@ public class Main {
             // Die Ressourcen werden nach Verlassen des try-Blocks automatisch geschlossen.
 
             try (TelegramBotsLongPollingApplication app = new TelegramBotsLongPollingApplication()) {
+                // Erstellt einen Telegram-Client mit dem Bot-Token,
+                // um Nachrichten über die Telegram-API versenden zu können
+                OkHttpTelegramClient client = new OkHttpTelegramClient(token);
 
                 // Registriert unseren EscapeBot mit dem Token bei der Telegram-Anwendung
-                app.registerBot(token, new EscapeBot());
+                app.registerBot(token, new EscapeBot(client));
 
                 //Gibt eine Startmeldung, wenn alles funktioniert
                 System.out.println("Escape Together Bot läuft");
