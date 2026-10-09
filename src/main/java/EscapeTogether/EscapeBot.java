@@ -2,6 +2,7 @@ package EscapeTogether;
 
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
 import java.util.List;
 // Importiert die Klasse zum Erstellen ausgehender Telegram-Nachrichten
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -9,7 +10,6 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 // Interface für die Kommunikation mit der Telegram-API
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-
 
 
 public class EscapeBot implements LongPollingUpdateConsumer {
@@ -33,25 +33,43 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Text aus der Telegram-Nachricht auslesen
                 String message = update.getMessage().getText();
 
+                // Teilt die Nachricht in Befehl und mögliche Argumente auf
+                String[] parts = message.split(" ");
+
                 // Liest die Chat-ID aus, damit der Bot an den richtigen Chat antworten kann
                 Long chatId = update.getMessage().getChatId();
                 // Speichert den Antworttext abhängig vom eingegebenen Befehl
 
                 String antwortText = "";
                 // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
-                switch (message) {
+                switch (parts[0]) {
                     case "/start" -> {
-                       antwortText = "Willkommen bei Escape Together!";
+                        antwortText = "Willkommen bei Escape Together!";
                     }
 
                     // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                     case "/create" -> {
                         GameSession session = gameService.createGame(chatId);
                         String roomcode = session.getRoomCode();
-                        antwortText ="Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!"  ;
+                        antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
                     }
-                    case "/join" -> {
 
+                    // Versucht, Spieler 2 zur Partie hinzuzufügen und speichert das Ergebnis
+                    case "/join" -> {
+                        if (parts.length > 1) {
+                            String roomCode = parts[1];
+                            boolean success = gameService.joinGame(roomCode, chatId);
+
+                            if (success) {
+                                antwortText = "Du bist dem Spiel erfolgreich beigetreten!";
+                            }
+                            else {
+                                antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
+                            }
+
+                        } else {
+                            antwortText = "Bitte gib einen Raumcode ein! Beispiel: /join a3f7";
+                        }
                     }
 
                     // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
@@ -69,7 +87,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Erstellt ein neues Nachrichtenobjekt für die Antwort des Bots
                 SendMessage antwort = SendMessage.builder()
                         .chatId(chatId)
-                        .text(antwortText )
+                        .text(antwortText)
                         .build();
 
                 // Versendet die erstellte Antwort über den Telegram-Client
