@@ -37,17 +37,20 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 Long chatId = update.getMessage().getChatId();
                 // Speichert den Antworttext abhängig vom eingegebenen Befehl
 
-                String antwortText;
+                String antwortText = "";
                 // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
                 switch (message) {
                     case "/start" -> {
                        antwortText = "Willkommen bei Escape Together!";
                     }
+
+                    // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                     case "/create" -> {
-                        // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                         GameSession session = gameService.createGame(chatId);
                         String roomcode = session.getRoomCode();
                         antwortText ="Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!"  ;
+                    }
+                    case "/join" -> {
 
                     }
 
