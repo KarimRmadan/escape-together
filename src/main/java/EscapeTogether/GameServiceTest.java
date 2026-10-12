@@ -39,16 +39,29 @@ public class GameServiceTest {
         // Gibt aus, ob Spieler 3 beitreten konnte
         System.out.println("Spieler 3 beigetreten: " + dritterSpieler);
 
-        // Erstellt einen neuen Raum für Spieler 1
-        GameSession neueSession = gameService.createGame(spieler1);
+
+        // ----------------------------------------
+        // Test: Spieler darf nicht seinem eigenen Raum beitreten
+        // ----------------------------------------
+
+        // Erstellt einen unabhängigen GameService für den Selbstbeitrittstest
+        GameService eigenerTestService = new GameService();
+
+        // Spieler 1 erstellt einen neuen Raum
+        GameSession neueSession = eigenerTestService.createGame(spieler1);
 
         // Spieler 1 versucht, seinem eigenen Raum beizutreten
-        boolean eigenerBeitritt = gameService.joinGame(
+        boolean eigenerBeitritt = eigenerTestService.joinGame(
                 neueSession.getRoomCode(), spieler1
         );
 
         // Gibt aus, ob Spieler 1 sich selbst beitreten konnte
         System.out.println("Spieler 1 tritt eigenem Raum bei: " + eigenerBeitritt);
+
+
+        // ----------------------------------------
+        // Test: Spielstatus
+        // ----------------------------------------
 
         // Beendet die laufende Spielpartie
         session.finishGame();
@@ -85,5 +98,25 @@ public class GameServiceTest {
         // Prüft, ob ein unbekannter Spieler keine Partie findet
         System.out.println("Spieler 3 nicht gefunden: " +
                 (testService.getSessionByPlayer(spieler3) == null));
+
+
+        // ----------------------------------------
+        // Test: Mehrere aktive Partien verhindern
+        // ----------------------------------------
+
+        // Erstellt einen unabhängigen GameService
+        GameService testService2 = new GameService();
+
+        // Spieler 1 erstellt seine erste Partie
+        GameSession erstePartie = testService2.createGame(spieler1);
+
+        // Spieler 1 versucht, eine zweite Partie zu erstellen
+        GameSession zweitePartie = testService2.createGame(spieler1);
+
+        // Prüft, ob die erste Partie erstellt wurde
+        System.out.println("Erste Partie erstellt: " + (erstePartie != null));
+
+        // Prüft, ob die zweite Partie verhindert wurde
+        System.out.println("Zweite Partie verhindert: " + (zweitePartie == null));
     }
 }
