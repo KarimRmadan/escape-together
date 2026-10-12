@@ -57,11 +57,10 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                     // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                     case "/create" -> {
                         GameSession session = gameService.createGame(chatId);
-                        if(session!= null) {
+                        if (session != null) {
                             String roomcode = session.getRoomCode();
                             antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
-                        }
-                        else {
+                        } else {
                             antwortText = "Du bist bereits in einem aktiven Spiel";
                         }
                     }
@@ -102,6 +101,26 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                         }
                     }
 
+                    case "/answer" -> {
+                        if (parts.length > 1) {
+                            String answer = parts[1];
+                            GameSession session = gameService.getSessionByPlayer(chatId);
+                            if (session == null){
+                                antwortText = "Du bist in keinem aktiven Spiel!";
+                            }
+                            else {
+                                if (session.getStatus() == GameStatus.RUNNING) {
+                                  Puzzle puzzle =  session.getCurrentPuzzle();
+
+                                }
+                            }
+                        }
+                        else {
+                            antwortText = "Bitte gib eine Lösung ein! Beispiel: /answer 1234";
+                        }
+
+                    }
+
                     // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
                     case "/help" -> {
                         antwortText = "Escape Together ist ein kooperativer Escape Room für zwei Spieler!";
@@ -112,7 +131,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                         antwortText = "Unbekannter Befehl";
                     }
                     case "/testbild" -> {
-                        sendPuzzleImage(chatId,"images/puzzle_01_spieler2.png");
+                        sendPuzzleImage(chatId, "images/puzzle_01_spieler2.png");
                         antwortText = "Rätselbild wurde angefordert!";
 
                     }
@@ -151,7 +170,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
             }
 
             SendPhoto foto = SendPhoto.builder()
-                    .chatId(chatId).photo(new InputFile(bild,"raetsel.png"))
+                    .chatId(chatId).photo(new InputFile(bild, "raetsel.png"))
                     .build();
 
             telegramClient.execute(foto);
