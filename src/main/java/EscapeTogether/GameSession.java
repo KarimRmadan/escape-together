@@ -14,8 +14,11 @@ public class GameSession {
     //Speichert den aktuellen Status der Session
     private GameStatus status = GameStatus.WAITING;
 
-    private Puzzle currentPuzzle = new Puzzle("Finde die Richtige Zahlenkombi", "puzzle_01_spieler1.png",
-            "puzzle_01_spieler2.png", "4286");
+    // Speichert das aktuelle Rätsel der Spielpartie
+    private Puzzle currentPuzzle = new Puzzle("Finde die Richtige Zahlenkombi",
+            "puzzle_01_spieler1.png",
+            "puzzle_01_spieler2.png",
+            "4286");
 
     //Constructor
     public GameSession(Long player1ChatId, String roomCode) {
@@ -26,7 +29,7 @@ public class GameSession {
     // Fügt Spieler 2 hinzu, sofern der Platz frei ist.
     // Gibt true zurück, wenn der Beitritt erfolgreich war und setzt den Status auf RUNNING.
 
-    public boolean joinGame(Long chatId){
+    public boolean joinGame(Long chatId) {
         if (player2ChatId == null && !player1ChatId.equals(chatId)) {
             player2ChatId = chatId;
             status = GameStatus.RUNNING;
@@ -35,8 +38,8 @@ public class GameSession {
         return false;
     }
 
-    public void finishGame(){
-        if (status == GameStatus.RUNNING){
+    public void finishGame() {
+        if (status == GameStatus.RUNNING) {
             status = GameStatus.FINISHED;
         }
     }
@@ -59,6 +62,7 @@ public class GameSession {
     public Long getPlayer1ChatId() {
         return player1ChatId;
     }
+
     public Long getPlayer2ChatId() {
         return player2ChatId;
     }
@@ -66,5 +70,9 @@ public class GameSession {
     //Getter für den GameStatus
     public GameStatus getStatus() {
         return status;
+    }
+
+    public Puzzle getCurrentPuzzle() {
+        return currentPuzzle;
     }
 }
