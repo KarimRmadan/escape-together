@@ -27,7 +27,6 @@ public class GameServiceTest {
         // Gibt den Spielstatus nach dem Beitritt aus
         System.out.println("Status nach Beitritt: " + session.getStatus());
 
-
         // Gibt aus, ob der Beitritt erfolgreich war
         System.out.println("Spieler 2 beigetreten: " + success);
 
@@ -43,21 +42,48 @@ public class GameServiceTest {
         // Erstellt einen neuen Raum für Spieler 1
         GameSession neueSession = gameService.createGame(spieler1);
 
-// Spieler 1 versucht, seinem eigenen Raum beizutreten
+        // Spieler 1 versucht, seinem eigenen Raum beizutreten
         boolean eigenerBeitritt = gameService.joinGame(
                 neueSession.getRoomCode(), spieler1
         );
 
-// Gibt aus, ob Spieler 1 sich selbst beitreten konnte
+        // Gibt aus, ob Spieler 1 sich selbst beitreten konnte
         System.out.println("Spieler 1 tritt eigenem Raum bei: " + eigenerBeitritt);
 
+        // Beendet die laufende Spielpartie
         session.finishGame();
         System.out.println("Spiel wurde beendet = " + session.getStatus());
 
         // Versucht, eine noch wartende Spielpartie zu beenden
         neueSession.finishGame();
 
-// Prüft, ob der Status weiterhin WAITING ist
+        // Prüft, ob der Status weiterhin WAITING ist
         System.out.println("Status nach Beendungsversuch: " + neueSession.getStatus());
+
+
+        // ----------------------------------------
+        // Test: Spielpartie anhand der Chat-ID finden
+        // ----------------------------------------
+
+        // Erstellt einen unabhängigen GameService für den Suchtest
+        GameService testService = new GameService();
+
+        // Erstellt eine Spielpartie für Spieler 1
+        GameSession testSession = testService.createGame(spieler1);
+
+        // Spieler 2 tritt der Partie bei
+        testService.joinGame(testSession.getRoomCode(), spieler2);
+
+        // Prüft, ob die Partie über Spieler 1 gefunden wird
+        System.out.println("Spieler 1 gefunden: " +
+                (testService.getSessionByPlayer(spieler1) == testSession));
+
+        // Prüft, ob die Partie über Spieler 2 gefunden wird
+        System.out.println("Spieler 2 gefunden: " +
+                (testService.getSessionByPlayer(spieler2) == testSession));
+
+        // Prüft, ob ein unbekannter Spieler keine Partie findet
+        System.out.println("Spieler 3 nicht gefunden: " +
+                (testService.getSessionByPlayer(spieler3) == null));
     }
 }

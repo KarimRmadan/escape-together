@@ -3,6 +3,7 @@ package EscapeTogether;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Objects;
 
 public class GameService {
 
@@ -45,5 +46,17 @@ public class GameService {
     // Sucht ein Spiel anhand des Raumcodes und gibt es zurück
     public GameSession getSession(String roomCode) {
         return sessions.get(roomCode);
+    }
+
+    // Sucht anhand der Chat-ID eines Spielers die zugehörige Spielpartie
+    // Gibt null zurück, wenn keine passende Partie gefunden wurde
+    public GameSession getSessionByPlayer(Long chatId) {
+        for (GameSession session : sessions.values()){
+            if (session.getPlayer1ChatId().equals(chatId) ||
+                    Objects.equals(session.getPlayer2ChatId(),chatId)){
+                return session;
+            }
+        }
+        return null;
     }
 }
