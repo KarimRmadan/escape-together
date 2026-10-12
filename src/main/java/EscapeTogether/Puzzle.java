@@ -8,6 +8,7 @@ public class Puzzle {
     private String player2Image;
     private String solution;
 
+    //Constructor erstellt
     public Puzzle(String description, String player1Image, String player2Image, String solution) {
         this.description = description;
         this.player1Image = player1Image;
@@ -15,7 +16,17 @@ public class Puzzle {
         this.solution = solution;
     }
 
+    //Methode zum Prüfen der antwort
     public boolean checkSolution (String answer){
   return Objects.equals(solution, answer);
+    }
+
+    //Getter für die Bildpfade
+    public String getPlayer2Image() {
+        return player2Image;
+    }
+
+    public String getPlayer1Image() {
+        return player1Image;
     }
 }
