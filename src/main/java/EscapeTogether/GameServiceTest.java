@@ -118,5 +118,36 @@ public class GameServiceTest {
 
         // Prüft, ob die zweite Partie verhindert wurde
         System.out.println("Zweite Partie verhindert: " + (zweitePartie == null));
+
+        // ----------------------------------------
+// Test: Mehrfachen Beitritt zu aktiven Partien verhindern
+// ----------------------------------------
+
+// Erstellt einen unabhängigen GameService für den Test
+        GameService beitrittTestService = new GameService();
+
+// Spieler 1 erstellt Raum A
+        GameSession raumA = beitrittTestService.createGame(spieler1);
+
+// Spieler 2 tritt Raum A bei
+        boolean beitrittRaumA = beitrittTestService.joinGame(
+                raumA.getRoomCode(), spieler2
+        );
+
+// Spieler 3 erstellt Raum B
+        GameSession raumB = beitrittTestService.createGame(spieler3);
+
+// Spieler 2 versucht, zusätzlich Raum B beizutreten
+        boolean beitrittRaumB = beitrittTestService.joinGame(
+                raumB.getRoomCode(), spieler2
+        );
+
+// Überprüft die Ergebnisse
+        System.out.println("Spieler 2 tritt Raum A bei: " + beitrittRaumA);
+        System.out.println("Spieler 2 tritt Raum B bei: " + beitrittRaumB);
+
+// Überprüft, ob Raum B weiterhin auf einen zweiten Spieler wartet
+        System.out.println("Raum B weiterhin WAITING: " +
+                (raumB.getStatus() == GameStatus.WAITING));
     }
 }
