@@ -11,6 +11,13 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+// Repräsentiert eine Bilddatei für die Telegram-API
+import org.telegram.telegrambots.meta.api.objects.InputFile;
+
+// Ermöglicht das Einlesen von Dateien aus dem Ressourcenordner
+import java.io.InputStream;
+
 
 public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
@@ -114,6 +121,22 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Empfangene Nachricht in der Konsole ausgeben
                 System.out.println("Nachricht empfangen: " + message);
             }
+        }
+    }
+
+    // Lädt ein Rätselbild und schließt den InputStream automatisch
+    private void sendPuzzleImage(Long chatId, String imagePath) {
+
+        try (InputStream bild = getClass().getClassLoader()
+                .getResourceAsStream(imagePath)) {
+
+            if (bild == null) {
+                System.out.println("Bild nicht gefunden: " + imagePath);
+                return;
+            }
+
+        } catch (Exception e) {
+            System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
         }
     }
 }
