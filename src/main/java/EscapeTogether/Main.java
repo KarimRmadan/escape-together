@@ -18,8 +18,8 @@ public class Main {
 
             // Erstellt und verwaltet die Telegram-Anwendung.
             // Die Ressourcen werden nach Verlassen des try-Blocks automatisch geschlossen.
-
             try (TelegramBotsLongPollingApplication app = new TelegramBotsLongPollingApplication()) {
+
                 // Erstellt einen Telegram-Client mit dem Bot-Token,
                 // um Nachrichten über die Telegram-API versenden zu können
                 OkHttpTelegramClient client = new OkHttpTelegramClient(token);

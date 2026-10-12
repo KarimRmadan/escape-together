@@ -62,8 +62,21 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                             if (success) {
                                 antwortText = "Du bist dem Spiel erfolgreich beigetreten!";
-                            }
-                            else {
+
+                                // Ermittelt die Chat-ID von Spieler 1 und benachrichtigt ihn über den Beitritt
+                                GameSession session = gameService.getSession(roomCode);
+                                Long player1ChatId = session.getPlayer1ChatId();
+
+                                SendMessage benachrichtigung = SendMessage.builder()
+                                        .chatId(player1ChatId)
+                                        .text("Spieler 2 ist beigetreten")
+                                        .build();
+                                try {
+                                    telegramClient.execute(benachrichtigung);
+                                } catch (TelegramApiException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            } else {
                                 antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
                             }
 
@@ -89,6 +102,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                         .chatId(chatId)
                         .text(antwortText)
                         .build();
+
 
                 // Versendet die erstellte Antwort über den Telegram-Client
                 try {

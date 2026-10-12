@@ -28,13 +28,19 @@ public class GameSession {
     // Prüft, ob beide Spielerplätze belegt sind.
     // Gibt true zurück, wenn Spieler 2 vorhanden ist, andernfalls false.
     public boolean isFull() {
-        if (player2ChatId != null){
-            return true;
-        }
-        return false;
+        return player2ChatId != null;
     }
 
+    // Gibt den eindeutigen Raumcode der Spielpartie zurück.
     public String getRoomCode() {
         return roomCode;
+    }
+
+    //Getter für die ChatId's
+    public Long getPlayer1ChatId() {
+        return player1ChatId;
+    }
+    public Long getPlayer2ChatId() {
+        return player2ChatId;
     }
 }
