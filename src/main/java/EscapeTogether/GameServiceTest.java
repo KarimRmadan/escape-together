@@ -15,11 +15,18 @@ public class GameServiceTest {
         // Spieler 1 erstellt eine neue Spielpartie
         GameSession session = gameService.createGame(spieler1);
 
+        // Gibt den Spielstatus vor dem Beitritt aus
+        System.out.println("Status vor Beitritt: " + session.getStatus());
+
         // Gibt den erzeugten Raumcode in der Konsole aus
         System.out.println("Raumcode: " + session.getRoomCode());
 
         // Spieler 2 versucht, der Spielpartie beizutreten
         boolean success = gameService.joinGame(session.getRoomCode(), spieler2);
+
+        // Gibt den Spielstatus nach dem Beitritt aus
+        System.out.println("Status nach Beitritt: " + session.getStatus());
+
 
         // Gibt aus, ob der Beitritt erfolgreich war
         System.out.println("Spieler 2 beigetreten: " + success);

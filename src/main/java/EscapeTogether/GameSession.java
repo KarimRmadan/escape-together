@@ -8,28 +8,38 @@ public class GameSession {
     // Speichert die Chat-ID des zweiten Spielers, sobald dieser beitritt
     private Long player2ChatId;
 
+    // Speichert den eindeutigen Raumcode der Spielpartie
     private final String roomCode;
 
+    //Speichert den aktuellen Status der Session
+    private GameStatus status = GameStatus.WAITING;
+
+    //Constructor
     public GameSession(Long player1ChatId, String roomCode) {
         this.player1ChatId = player1ChatId;
         this.roomCode = roomCode;
     }
 
     // Fügt Spieler 2 hinzu, sofern der Platz frei ist.
-    // Gibt true zurück, wenn der Beitritt erfolgreich war.
+    // Gibt true zurück, wenn der Beitritt erfolgreich war und setzt den Status auf RUNNING.
+
     public boolean joinGame(Long chatId){
         if (player2ChatId == null && !player1ChatId.equals(chatId)) {
             player2ChatId = chatId;
+            status = GameStatus.RUNNING;
             return true;
         }
         return false;
     }
+
 
     // Prüft, ob beide Spielerplätze belegt sind.
     // Gibt true zurück, wenn Spieler 2 vorhanden ist, andernfalls false.
     public boolean isFull() {
         return player2ChatId != null;
     }
+
+    //Getter
 
     // Gibt den eindeutigen Raumcode der Spielpartie zurück.
     public String getRoomCode() {
@@ -42,5 +52,10 @@ public class GameSession {
     }
     public Long getPlayer2ChatId() {
         return player2ChatId;
+    }
+
+    //Getter für den GameStatus
+    public GameStatus getStatus() {
+        return status;
     }
 }
