@@ -107,8 +107,10 @@ public class GameSession {
         return status;
     }
 
-//    //Getter für currentPuzzle
-//    public Puzzle getCurrentPuzzle() {
-//        return currentPuzzle;
-//    }
+
+    // Gibt das aktuelle Rätsel aus der Liste zurück
+    public Puzzle getCurrentPuzzle() {
+        return puzzles.get(currentPuzzleIndex);
+    }
+
 }
