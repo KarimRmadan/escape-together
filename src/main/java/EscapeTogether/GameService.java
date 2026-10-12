@@ -59,4 +59,15 @@ public class GameService {
         }
         return null;
     }
+
+    //Prüft ob ein Spieler bereits in einem aktiven Spiel ist
+    private boolean hasActiveGame(Long chatId){
+        for (GameSession session : sessions.values()){
+            if ((session.getPlayer1ChatId().equals(chatId) ||
+                    Objects.equals(session.getPlayer2ChatId(),chatId)) && session.getStatus() != GameStatus.FINISHED){
+                return true;
+            }
+        }
+        return false;
+    }
 }
