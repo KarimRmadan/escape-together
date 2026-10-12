@@ -72,6 +72,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                                 // Ermittelt die Chat-ID von Spieler 1 und benachrichtigt ihn über den Beitritt
                                 GameSession session = gameService.getSession(roomCode);
+                                Puzzle puzzle = session.getCurrentPuzzle();
                                 Long player1ChatId = session.getPlayer1ChatId();
 
                                 SendMessage benachrichtigung = SendMessage.builder()
@@ -83,6 +84,10 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                 } catch (TelegramApiException e) {
                                     throw new RuntimeException(e);
                                 }
+                                // Sendet Spieler 1 sein Rätselbild
+                                sendPuzzleImage(player1ChatId, puzzle.getPlayer1Image());
+                                // Sendet Spieler 2 sein Rätselbild
+                                sendPuzzleImage(chatId, puzzle.getPlayer2Image());
                             } else {
                                 antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
                             }

@@ -16,8 +16,8 @@ public class GameSession {
 
     // Speichert das aktuelle Rätsel der Spielpartie
     private Puzzle currentPuzzle = new Puzzle("Finde die Richtige Zahlenkombi",
-            "puzzle_01_spieler1.png",
-            "puzzle_01_spieler2.png",
+            "images/puzzle_01_spieler1.png",
+            "images/puzzle_01_spieler2.png",
             "4286");
 
     //Constructor
@@ -72,6 +72,7 @@ public class GameSession {
         return status;
     }
 
+    //Getter für currentPuzzle
     public Puzzle getCurrentPuzzle() {
         return currentPuzzle;
     }
