@@ -111,6 +111,12 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                             else {
                                 if (session.getStatus() == GameStatus.RUNNING) {
                                   Puzzle puzzle =  session.getCurrentPuzzle();
+                                  if (puzzle.checkSolution(answer)){
+                                      antwortText = "Richtig! Ihr habt das Rätsel gelöst!";
+                                  }
+                                  else {
+                                      antwortText = "Leider falsch! Versucht es erneut!";
+                                  }
 
                                 }
                             }
