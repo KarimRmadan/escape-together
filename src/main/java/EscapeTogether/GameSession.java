@@ -35,7 +35,7 @@ public class GameSession {
         puzzles.add(new Puzzle(
                 "Ihr steht in einem dunklen Flur. \nFindet gemeinsam den Richtigen Schlüssel für die nächste Tür!",
                 "images/puzzle_02_spieler1.png",
-                "images/puzzles_02_spieler2.png",
+                "images/puzzle_02_spieler2.png",
                 "D"
         ));
         puzzles.add(new Puzzle(
