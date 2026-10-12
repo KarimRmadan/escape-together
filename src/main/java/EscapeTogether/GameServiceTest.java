@@ -51,5 +51,13 @@ public class GameServiceTest {
 // Gibt aus, ob Spieler 1 sich selbst beitreten konnte
         System.out.println("Spieler 1 tritt eigenem Raum bei: " + eigenerBeitritt);
 
+        session.finishGame();
+        System.out.println("Spiel wurde beendet = " + session.getStatus());
+
+        // Versucht, eine noch wartende Spielpartie zu beenden
+        neueSession.finishGame();
+
+// Prüft, ob der Status weiterhin WAITING ist
+        System.out.println("Status nach Beendungsversuch: " + neueSession.getStatus());
     }
 }

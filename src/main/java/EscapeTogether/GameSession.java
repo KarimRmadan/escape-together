@@ -32,6 +32,12 @@ public class GameSession {
         return false;
     }
 
+    public void finishGame(){
+        if (status == GameStatus.RUNNING){
+            status = GameStatus.FINISHED;
+        }
+    }
+
 
     // Prüft, ob beide Spielerplätze belegt sind.
     // Gibt true zurück, wenn Spieler 2 vorhanden ist, andernfalls false.
