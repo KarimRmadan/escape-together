@@ -14,6 +14,9 @@ public class GameSession {
     //Speichert den aktuellen Status der Session
     private GameStatus status = GameStatus.WAITING;
 
+    private Puzzle currentPuzzle = new Puzzle("Finde die Richtige Zahlenkombi", "puzzle_01_spieler1.png",
+            "puzzle_01_spieler2.png", "4286");
+
     //Constructor
     public GameSession(Long player1ChatId, String roomCode) {
         this.player1ChatId = player1ChatId;
