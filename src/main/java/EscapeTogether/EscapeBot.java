@@ -135,6 +135,12 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 return;
             }
 
+            SendPhoto foto = SendPhoto.builder()
+                    .chatId(chatId).photo(new InputFile(bild,"raetsel.png"))
+                    .build();
+
+            telegramClient.execute(foto);
+
         } catch (Exception e) {
             System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
         }
