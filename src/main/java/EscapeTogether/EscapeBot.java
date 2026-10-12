@@ -101,6 +101,9 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                     default -> {
                         antwortText = "Unbekannter Befehl";
                     }
+                    case "/testbild" -> {
+                        sendPuzzleImage(chatId,"images/puzzle_01_spieler1.png");
+                    }
 
                 }
 
