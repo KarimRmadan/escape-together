@@ -1,5 +1,8 @@
 package EscapeTogether;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameSession {
 
     // Speichert die Chat-ID des Spielers, der die Partie erstellt hat
@@ -15,15 +18,47 @@ public class GameSession {
     private GameStatus status = GameStatus.WAITING;
 
     // Speichert das aktuelle Rätsel der Spielpartie
-    private Puzzle currentPuzzle = new Puzzle("Finde die Richtige Zahlenkombi",
-            "images/puzzle_01_spieler1.png",
-            "images/puzzle_01_spieler2.png",
-            "4286");
+    private final List<Puzzle> puzzles = new ArrayList<>();
+    private int currentPuzzleIndex = 0;
+
 
     //Constructor
     public GameSession(Long player1ChatId, String roomCode) {
         this.player1ChatId = player1ChatId;
         this.roomCode = roomCode;
+        puzzles.add(new Puzzle(
+                "Findet die richtige Zahlenkombination um diesen Raum zu verlassen!",
+                "images/puzzle_01_spieler1.png",
+                "images/puzzle_01_spieler2.png",
+                "4286"
+        ));
+        puzzles.add(new Puzzle(
+                "Ihr steht in einem dunklen Flur. \nFindet gemeinsam den Richtigen Schlüssel für die nächste Tür!",
+                "images/puzzle_02_spieler1.png",
+                "images/puzzles_02_spieler2.png",
+                "D"
+        ));
+        puzzles.add(new Puzzle(
+                "Ihr erreicht einen dunklen Innenhof."
+                        + " Vier alte Laternen beleuchten das verschlossene Tor. "
+                        + "Jeder von euch besitzt einen Teil des Rätsels. "
+                        + "Findet gemeinsam den vierstelligen Code!",
+                "images/puzzle_03_spieler1.png",
+                "images/puzzle_03_spieler2.png",
+                "7392"
+        ));
+        puzzles.add(new Puzzle(
+                "Das letzte Tor.\n" +
+                        "Ihr steht vor dem letzten verschlossenen Tor.\n "
+                        + "Vier Gegenstände liegen auf einem steinernen Tisch.\n "
+                        + "Jeder von euch besitzt einen Hinweis auf den "
+                        + "richtigen Gegenstand des anderen. \n"
+                        + "Nur wenn ihr beide richtig entscheidet, "
+                        + "öffnet sich das Tor.",
+                "images/puzzle_04_spieler1.png",
+                "images/puzzle_04_spieler2.png",
+                "SCHLUESSEL SPIEGEL"
+        ));
     }
 
     // Fügt Spieler 2 hinzu, sofern der Platz frei ist.
@@ -72,8 +107,8 @@ public class GameSession {
         return status;
     }
 
-    //Getter für currentPuzzle
-    public Puzzle getCurrentPuzzle() {
-        return currentPuzzle;
-    }
+//    //Getter für currentPuzzle
+//    public Puzzle getCurrentPuzzle() {
+//        return currentPuzzle;
+//    }
 }
