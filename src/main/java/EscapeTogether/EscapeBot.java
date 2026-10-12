@@ -57,8 +57,13 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                     // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                     case "/create" -> {
                         GameSession session = gameService.createGame(chatId);
-                        String roomcode = session.getRoomCode();
-                        antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
+                        if(session!= null) {
+                            String roomcode = session.getRoomCode();
+                            antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
+                        }
+                        else {
+                            antwortText = "Du bist bereits in einem aktiven Spiel";
+                        }
                     }
 
                     // Versucht, Spieler 2 zur Partie hinzuzufügen und speichert das Ergebnis
