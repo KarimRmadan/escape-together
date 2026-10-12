@@ -13,21 +13,25 @@ public class GameService {
     // Erstellt eine neue Spielpartie für den angegebenen Spieler
     public GameSession createGame(Long chatId) {
 
-        // Erzeugt einen zufälligen vierstelligen Raumcode für die neue Partie
-        String roomCode = UUID.randomUUID().toString().substring(0, 4);
+        if (!hasActiveGame(chatId)) {
+            // Erzeugt einen zufälligen vierstelligen Raumcode für die neue Partie
+            String roomCode = UUID.randomUUID().toString().substring(0, 4);
 
-        // Erzeugt bei einer Überschneidung einen neuen Raumcode
-        while (sessions.containsKey(roomCode)) {
-            roomCode = UUID.randomUUID().toString().substring(0, 4);
+            // Erzeugt bei einer Überschneidung einen neuen Raumcode
+            while (sessions.containsKey(roomCode)) {
+                roomCode = UUID.randomUUID().toString().substring(0, 4);
+            }
+
+            // Erstellt die neue Spielpartie mit dem freien Raumcode
+            GameSession session = new GameSession(chatId, roomCode);
+
+            // Speichert die Spielpartie unter ihrem Raumcode in der HashMap
+            sessions.put(roomCode, session);
+
+            return session;
         }
-
-        // Erstellt die neue Spielpartie mit dem freien Raumcode
-        GameSession session = new GameSession(chatId, roomCode);
-
-        // Speichert die Spielpartie unter ihrem Raumcode in der HashMap
-        sessions.put(roomCode, session);
-
-        return session;
+        System.out.println("Du bist bereits in einem aktiven Spiel!");
+        return null;
     }
 
     // Ermöglicht einem zweiten Spieler, einer bestehenden Partie beizutreten
