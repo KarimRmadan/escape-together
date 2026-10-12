@@ -38,11 +38,14 @@ public class GameService {
     // Gibt zurück, ob der Beitritt erfolgreich war
     public boolean joinGame(String roomCode, Long chatId) {
 
-        GameSession session = sessions.get(roomCode);
-
-        if (session != null) {
-            return session.joinGame(chatId);
+        if (hasActiveGame(chatId)){
+            return false;
         }
+            GameSession session = sessions.get(roomCode);
+
+            if (session != null) {
+                return session.joinGame(chatId);
+            }
 
         return false;
     }
