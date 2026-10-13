@@ -62,6 +62,11 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                     waitingForRoomCode.remove(chatId);
                     continue;
                 }
+                // Verarbeitet normale Textnachrichten als Rätselantwort
+                if (!message.startsWith("/")) {
+                    answer(chatId, message.trim());
+                    continue;
+                }
 
                 // Speichert den Antworttext abhängig vom eingegebenen Befehl
                 String antwortText = "";
@@ -98,77 +103,6 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                             telegramClient.execute(startMessage);
                         } catch (TelegramApiException e) {
                             throw new RuntimeException(e);
-                        }
-                    }
-
-                    // Versucht, Spieler 2 zur Partie hinzuzufügen und speichert das Ergebnis
-
-                    // Verarbeitet die eingegebene Lösung eines Spielers
-                    case "/answer" -> {
-
-                        // Prüft, ob nach dem Befehl eine Antwort eingegeben wurde
-                        if (parts.length > 1) {
-
-                            // Entfernt den Befehl /answer und überflüssige Leerzeichen
-                            String answer = message.substring("/answer".length()).trim();
-
-                            // Sucht die Spielpartie anhand der Chat-ID des Spielers
-                            GameSession session = gameService.getSessionByPlayer(chatId);
-
-                            // Prüft, ob der Spieler einer Spielpartie zugeordnet ist
-                            if (session == null) {
-                                antwortText = "Du bist in keinem aktiven Spiel!";
-                            } else {
-                                if (session.getStatus() == GameStatus.WAITING) {
-                                    antwortText = "Warte auf Spieler 2!";
-
-                                } else {
-                                    // Prüft, ob die Spielpartie aktuell läuft
-                                    if (session.getStatus() == GameStatus.RUNNING) {
-
-                                        // Holt das aktuelle Rätsel der Spielpartie
-                                        Puzzle puzzle = session.getCurrentPuzzle();
-
-                                        // Überprüft, ob die eingegebene Lösung richtig ist
-                                        if (puzzle.checkSolution(answer)) {
-                                            sendDescription(session.getPlayer1ChatId(), "Richtig ihr habt das Rätsel gelöst!");
-                                            sendDescription(session.getPlayer2ChatId(), "Richtig ihr habt das Rätsel gelöst!");
-
-                                            // Wechselt zum nächsten Rätsel, sofern eines vorhanden ist
-                                            if (session.nextPuzzle()) {
-
-                                                // Holt das neue Rätsel nach dem erfolgreichen Wechsel
-                                                puzzle = session.getCurrentPuzzle();
-
-                                                // Sendet beiden Spielern ihr jeweiliges Rätselbild
-                                                sendDescription(session.getPlayer1ChatId(), puzzle.getDescription());
-                                                sendPuzzleImage(session.getPlayer1ChatId(), puzzle.getPlayer1Image());
-
-                                                sendDescription(session.getPlayer2ChatId(), puzzle.getDescription());
-                                                sendPuzzleImage(session.getPlayer2ChatId(), puzzle.getPlayer2Image());
-
-
-                                            } else {
-                                                // Beendet die Spielpartie, wenn alle Rätsel gelöst wurden
-                                                session.finishGame();
-
-                                                // Sendet beiden Spielern das Abschlussbild
-                                                sendPuzzleImage(session.getPlayer1ChatId(), "images/abschluss.png");
-                                                sendPuzzleImage(session.getPlayer2ChatId(), "images/abschluss.png");
-                                            }
-
-                                        } else {
-                                            // Informiert den Spieler über eine falsche Lösung
-                                            antwortText = "Leider falsch! Versucht es erneut!";
-                                        }
-                                    } else {
-                                        antwortText = "Das Spiel ist bereits beendet!";
-                                    }
-                                }
-                            }
-                        } else {
-                            // Fordert den Spieler auf, eine Lösung einzugeben
-                            antwortText = "Bitte gib eine Lösung ein! Beispiel: /answer 1234";
                         }
                     }
 
@@ -330,5 +264,62 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
         }
     }
+
+    public void answer(Long chatId, String answer){
+        GameSession session = gameService.getSessionByPlayer(chatId);
+        if (session == null) {
+            sendDescription(chatId, "Du bist in keinem aktiven Spiel!");
+        }else {
+            if (session.getStatus() == GameStatus.WAITING) {
+                sendDescription(chatId, "Warte auf Spieler 2!");
+            } else {
+                // Prüft, ob die Spielpartie aktuell läuft
+                if (session.getStatus() == GameStatus.RUNNING) {
+
+                    // Holt das aktuelle Rätsel der Spielpartie
+                    Puzzle puzzle = session.getCurrentPuzzle();
+
+                    // Überprüft, ob die eingegebene Lösung richtig ist
+                    if (puzzle.checkSolution(answer)) {
+                        sendDescription(session.getPlayer1ChatId(), "Richtig ihr habt das Rätsel gelöst!");
+                        sendDescription(session.getPlayer2ChatId(), "Richtig ihr habt das Rätsel gelöst!");
+
+                        // Wechselt zum nächsten Rätsel, sofern eines vorhanden ist
+                        if (session.nextPuzzle()) {
+
+                            // Holt das neue Rätsel nach dem erfolgreichen Wechsel
+                            puzzle = session.getCurrentPuzzle();
+
+                            // Sendet beiden Spielern ihr jeweiliges Rätselbild
+                            sendDescription(session.getPlayer1ChatId(), puzzle.getDescription());
+                            sendPuzzleImage(session.getPlayer1ChatId(), puzzle.getPlayer1Image());
+
+                            sendDescription(session.getPlayer2ChatId(), puzzle.getDescription());
+                            sendPuzzleImage(session.getPlayer2ChatId(), puzzle.getPlayer2Image());
+
+
+                        } else {
+                            // Beendet die Spielpartie, wenn alle Rätsel gelöst wurden
+                            session.finishGame();
+
+                            // Sendet beiden Spielern das Abschlussbild
+                            sendPuzzleImage(session.getPlayer1ChatId(), "images/abschluss.png");
+                            sendPuzzleImage(session.getPlayer2ChatId(), "images/abschluss.png");
+                        }
+
+                    } else {
+                        // Informiert den Spieler über eine falsche Lösung
+                        sendDescription(chatId, "Leider falsch! Versucht es erneut!");
+
+
+                    }
+                } else {
+                    sendDescription(chatId, "Das Spiel ist bereits beendet!");
+                }
+            }
+        }
+    }
 }
+
+
 
