@@ -16,7 +16,7 @@ public class Puzzle {
 
     //Methode zum Prüfen der antwort
     public boolean checkSolution (String answer){
-  return solution.equals(answer.trim());
+  return solution.equalsIgnoreCase(answer.trim());
     }
 
     //Getter für die Bildpfade
