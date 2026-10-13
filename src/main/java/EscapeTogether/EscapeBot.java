@@ -18,6 +18,12 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 // Ermöglicht das Einlesen von Dateien aus dem Ressourcenordner
 import java.io.InputStream;
 
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+
 
 public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
@@ -53,9 +59,29 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
                 switch (parts[0]) {
                     case "/start" -> {
-                        antwortText = "Willkommen bei Escape Together!";
-                    }
+                        InlineKeyboardButton createButton = InlineKeyboardButton.builder()
+                                .text("Spiel erstellen")
+                                .callbackData("create_game")
+                                .build();
 
+                        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
+                                .keyboardRow(new InlineKeyboardRow(createButton))
+                                .build();
+
+                        // Erstellt die Willkommensnachricht mit dem Button
+                        SendMessage startMessage = SendMessage.builder()
+                                .chatId(chatId)
+                                .text("Willkommen bei Escape Together!")
+                                .replyMarkup(keyboard)
+                                .build();
+
+                        // Verschickt die Willkommensnachricht an Telegram
+                        try {
+                            telegramClient.execute(startMessage);
+                        } catch (TelegramApiException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
                     // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
                     case "/create" -> {
                         GameSession session = gameService.createGame(chatId);
@@ -210,41 +236,64 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Empfangene Nachricht in der Konsole ausgeben
                 System.out.println("Nachricht empfangen: " + message);
             }
-        }
-    }
-
-    // Lädt ein Rätselbild und schließt den InputStream automatisch
-    private void sendPuzzleImage(Long chatId, String imagePath) {
-
-        try (InputStream bild = getClass().getClassLoader()
-                .getResourceAsStream(imagePath)) {
-
-            if (bild == null) {
-                System.out.println("Bild nicht gefunden: " + imagePath);
-                return;
+            if (update.hasCallbackQuery()) {
+                String callbackData = update.getCallbackQuery()
+                        .getData();
+                Long chatId = update.getCallbackQuery().getMessage().getChatId();
+                if (callbackData.equals("create_game")) {
+                    create(chatId);
+                    String callbackId = update.getCallbackQuery().getId();
+                    AnswerCallbackQuery bestaetigung = AnswerCallbackQuery.builder()
+                            .callbackQueryId(callbackId)
+                            .build();
+                }
             }
+        }
+    }
+        // Lädt ein Rätselbild und schließt den InputStream automatisch
+        private void sendPuzzleImage (Long chatId, String imagePath){
 
-            SendPhoto foto = SendPhoto.builder()
-                    .chatId(chatId).photo(new InputFile(bild, "raetsel.png"))
+            try (InputStream bild = getClass().getClassLoader()
+                    .getResourceAsStream(imagePath)) {
+
+                if (bild == null) {
+                    System.out.println("Bild nicht gefunden: " + imagePath);
+                    return;
+                }
+
+                SendPhoto foto = SendPhoto.builder()
+                        .chatId(chatId).photo(new InputFile(bild, "raetsel.png"))
+                        .build();
+
+                telegramClient.execute(foto);
+
+            } catch (Exception e) {
+                System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
+            }
+        }
+
+        public void sendDescription (Long chatId, String description){
+
+            SendMessage descriptionText = SendMessage.builder()
+                    .chatId(chatId)
+                    .text(description)
                     .build();
+            try {
+                telegramClient.execute(descriptionText);
+            } catch (TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
-            telegramClient.execute(foto);
+        public void create (Long chatId){
+            GameSession session = gameService.createGame(chatId);
+            if (session != null) {
+                String roomcode = session.getRoomCode();
+                sendDescription(chatId, "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!");
 
-        } catch (Exception e) {
-            System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
+            } else {
+                sendDescription(chatId, "Du bist bereits in einem aktiven Spiel");
+
+            }
         }
     }
-
-    public void sendDescription(Long chatId, String description) {
-
-        SendMessage descriptionText = SendMessage.builder()
-                .chatId(chatId)
-                .text(description)
-                .build();
-        try {
-            telegramClient.execute(descriptionText);
-        } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
