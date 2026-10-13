@@ -27,4 +27,8 @@ public class Puzzle {
     public String getPlayer1Image() {
         return player1Image;
     }
+
+    public String getDescription() {
+        return description;
+    }
 }

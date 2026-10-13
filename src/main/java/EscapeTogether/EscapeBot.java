@@ -89,10 +89,13 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                 } catch (TelegramApiException e) {
                                     throw new RuntimeException(e);
                                 }
+
                                 // Sendet Spieler 1 sein Rätselbild
                                 sendPuzzleImage(player1ChatId, puzzle.getPlayer1Image());
+                                sendDescription(player1ChatId, puzzle.getDescription());
                                 // Sendet Spieler 2 sein Rätselbild
                                 sendPuzzleImage(chatId, puzzle.getPlayer2Image());
+                                sendDescription(chatId, puzzle.getDescription());
                             }
                             else {
                                 antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
@@ -138,8 +141,12 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                             puzzle = session.getCurrentPuzzle();
 
                                             // Sendet beiden Spielern ihr jeweiliges Rätselbild
+                                            sendDescription(session.getPlayer1ChatId(), puzzle.getDescription());
                                             sendPuzzleImage(session.getPlayer1ChatId(), puzzle.getPlayer1Image());
+
+                                            sendDescription(session.getPlayer2ChatId(), puzzle.getDescription());
                                             sendPuzzleImage(session.getPlayer2ChatId(), puzzle.getPlayer2Image());
+
 
                                         }
                                         else {
@@ -220,6 +227,19 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
         } catch (Exception e) {
             System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
+        }
+    }
+
+    public void sendDescription(Long chatId, String description){
+
+        SendMessage descriptionText = SendMessage.builder()
+                        .chatId(chatId)
+                .text(description)
+                .build();
+        try {
+            telegramClient.execute(descriptionText);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 }
