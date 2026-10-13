@@ -86,6 +86,7 @@ public class GameSession {
         return player2ChatId != null;
     }
 
+
     //Getter
 
     // Gibt den eindeutigen Raumcode der Spielpartie zurück.
@@ -113,4 +114,11 @@ public class GameSession {
         return puzzles.get(currentPuzzleIndex);
     }
 
+    public boolean nextPuzzle() {
+            if (currentPuzzleIndex < puzzles.size() - 1) {
+                currentPuzzleIndex++;
+                return true;
+        }
+            return false;
+    }
 }
