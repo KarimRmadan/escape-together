@@ -32,7 +32,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
     // Verwaltet alle Spielpartien während der Laufzeit des Bots
     private final GameService gameService = new GameService();
-   private final Set<Long> waitingForRoomCode = new HashSet<>();
+    private final Set<Long> waitingForRoomCode = new HashSet<>();
 
     public EscapeBot(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
@@ -57,8 +57,8 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 Long chatId = update.getMessage().getChatId();
 
                 //prüft ob die chatId auf der warteliste steht
-                if (waitingForRoomCode.contains(chatId)){
-                    join(chatId,message.trim());
+                if (waitingForRoomCode.contains(chatId)) {
+                    join(chatId, message.trim());
                     waitingForRoomCode.remove(chatId);
                     continue;
                 }
@@ -75,35 +75,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
                 switch (parts[0]) {
                     case "/start" -> {
-                        InlineKeyboardButton createButton = InlineKeyboardButton.builder()
-                                .text("Spiel erstellen")
-                                .callbackData("create_game")
-                                .build();
-
-                        InlineKeyboardButton joinButton = InlineKeyboardButton.builder()
-                                .text("Spiel beitreten")
-                                .callbackData("join_game")
-                                .build();
-
-                        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
-                                .keyboardRow(new InlineKeyboardRow(createButton))
-                                .keyboardRow(new InlineKeyboardRow(joinButton))
-                                .build();
-
-
-                        // Erstellt die Willkommensnachricht mit dem Button
-                        SendMessage startMessage = SendMessage.builder()
-                                .chatId(chatId)
-                                .text("Willkommen bei Escape Together!")
-                                .replyMarkup(keyboard)
-                                .build();
-
-                        // Verschickt die Willkommensnachricht an Telegram
-                        try {
-                            telegramClient.execute(startMessage);
-                        } catch (TelegramApiException e) {
-                            throw new RuntimeException(e);
-                        }
+                        sendStartScreen(chatId);
                     }
 
                     // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
@@ -205,6 +177,54 @@ public class EscapeBot implements LongPollingUpdateConsumer {
         }
     }
 
+    // Erstellt und versendet den Startbildschirm mit zwei Auswahlbuttons
+    private void sendStartScreen(Long chatId) {
+
+        // Erstellt den Button zum Erstellen eines Spiels
+        InlineKeyboardButton createButton = InlineKeyboardButton.builder()
+                .text("🎮 Spiel erstellen")
+                .callbackData("create_game")
+                .build();
+
+        // Erstellt den Button zum Beitreten eines Spiels
+        InlineKeyboardButton joinButton = InlineKeyboardButton.builder()
+                .text("🚪 Spiel beitreten")
+                .callbackData("join_game")
+                .build();
+
+        // Ordnet beide Buttons untereinander an
+        InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
+                .keyboardRow(new InlineKeyboardRow(createButton))
+                .keyboardRow(new InlineKeyboardRow(joinButton))
+                .build();
+
+        // Lädt das Begrüßungsbild aus dem Ressourcenordner
+        try (InputStream bild = getClass().getClassLoader()
+                .getResourceAsStream("images/startbild.png")) {
+
+            // Prüft, ob das Bild gefunden wurde
+            if (bild == null) {
+                System.out.println("Startbild nicht gefunden!");
+                return;
+            }
+
+            // Erstellt die Bildnachricht mit den beiden Buttons
+            SendPhoto startScreen = SendPhoto.builder()
+                    .chatId(chatId)
+                    .photo(new InputFile(bild, "startscreen.png"))
+                    .caption("Willkommen bei Escape Together! 🔐\n" +
+                            "Löst gemeinsam vier Rätsel und findet den Weg nach draußen.")
+                    .replyMarkup(keyboard)
+                    .build();
+
+            // Verschickt den Startbildschirm an den Spieler
+            telegramClient.execute(startScreen);
+
+        } catch (Exception e) {
+            System.out.println("Fehler beim Startbildschirm: " + e.getMessage());
+        }
+    }
+
     public void sendDescription(Long chatId, String description) {
 
         SendMessage descriptionText = SendMessage.builder()
@@ -265,11 +285,11 @@ public class EscapeBot implements LongPollingUpdateConsumer {
         }
     }
 
-    public void answer(Long chatId, String answer){
+    public void answer(Long chatId, String answer) {
         GameSession session = gameService.getSessionByPlayer(chatId);
         if (session == null) {
             sendDescription(chatId, "Du bist in keinem aktiven Spiel!");
-        }else {
+        } else {
             if (session.getStatus() == GameStatus.WAITING) {
                 sendDescription(chatId, "Warte auf Spieler 2!");
             } else {
