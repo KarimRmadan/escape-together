@@ -103,7 +103,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                     case "/answer" -> {
                         if (parts.length > 1) {
-                            String answer = parts[1];
+                            String answer = message.substring("/answer".length()).trim();
                             GameSession session = gameService.getSessionByPlayer(chatId);
                             if (session == null){
                                 antwortText = "Du bist in keinem aktiven Spiel!";

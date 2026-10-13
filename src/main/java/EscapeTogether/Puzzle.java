@@ -1,7 +1,5 @@
 package EscapeTogether;
 
-import java.util.Objects;
-
 public class Puzzle {
     private String description;
     private String player1Image;
@@ -18,7 +16,7 @@ public class Puzzle {
 
     //Methode zum Prüfen der antwort
     public boolean checkSolution (String answer){
-  return Objects.equals(solution, answer);
+  return solution.equals(answer.trim());
     }
 
     //Getter für die Bildpfade
