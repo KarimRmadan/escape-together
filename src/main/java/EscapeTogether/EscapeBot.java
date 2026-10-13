@@ -45,9 +45,11 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                 // Liest die Chat-ID aus, damit der Bot an den richtigen Chat antworten kann
                 Long chatId = update.getMessage().getChatId();
-                // Speichert den Antworttext abhängig vom eingegebenen Befehl
 
+                // Speichert den Antworttext abhängig vom eingegebenen Befehl
                 String antwortText = "";
+
+
                 // Unterscheidet die Befehle des Nutzers und führt die passende Aktion aus
                 switch (parts[0]) {
                     case "/start" -> {
@@ -60,8 +62,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                         if (session != null) {
                             String roomcode = session.getRoomCode();
                             antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
-                        }
-                        else {
+                        } else {
                             antwortText = "Du bist bereits in einem aktiven Spiel";
                         }
                     }
@@ -73,7 +74,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                             boolean success = gameService.joinGame(roomCode, chatId);
 
                             if (success) {
-                                antwortText = "Du bist dem Spiel erfolgreich beigetreten!";
+                                sendDescription(chatId, "Du bist dem Spiel erfolgreich beigetreten!");
 
                                 // Ermittelt die Chat-ID von Spieler 1 und benachrichtigt ihn über den Beitritt
                                 GameSession session = gameService.getSession(roomCode);
@@ -96,13 +97,11 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                 // Sendet Spieler 2 sein Rätselbild
                                 sendPuzzleImage(chatId, puzzle.getPlayer2Image());
                                 sendDescription(chatId, puzzle.getDescription());
-                            }
-                            else {
+                            } else {
                                 antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
                             }
 
-                        }
-                        else {
+                        } else {
                             antwortText = "Bitte gib einen Raumcode ein! Beispiel: /join a3f7";
                         }
                     }
@@ -135,7 +134,8 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                                         // Überprüft, ob die eingegebene Lösung richtig ist
                                         if (puzzle.checkSolution(answer)) {
-                                            antwortText = "Richtig! Ihr habt das Rätsel gelöst!";
+                                            sendDescription(session.getPlayer1ChatId(), "Richtig ihr habt das Rätsel gelöst!");
+                                            sendDescription(session.getPlayer2ChatId(), "Richtig ihr habt das Rätsel gelöst!");
 
                                             // Wechselt zum nächsten Rätsel, sofern eines vorhanden ist
                                             if (session.nextPuzzle()) {
@@ -164,8 +164,7 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                             // Informiert den Spieler über eine falsche Lösung
                                             antwortText = "Leider falsch! Versucht es erneut!";
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         antwortText = "Das Spiel ist bereits beendet!";
                                     }
                                 }
@@ -193,20 +192,21 @@ public class EscapeBot implements LongPollingUpdateConsumer {
 
                 }
 
-                // Erstellt ein neues Nachrichtenobjekt für die Antwort des Bots
-                SendMessage antwort = SendMessage.builder()
-                        .chatId(chatId)
-                        .text(antwortText)
-                        .build();
+                if (!antwortText.isEmpty()) {
+                    // Erstellt ein neues Nachrichtenobjekt für die Antwort des Bots
+                    SendMessage antwort = SendMessage.builder()
+                            .chatId(chatId)
+                            .text(antwortText)
+                            .build();
 
 
-                // Versendet die erstellte Antwort über den Telegram-Client
-                try {
-                    telegramClient.execute(antwort);
-                } catch (TelegramApiException e) {
-                    throw new RuntimeException(e);
+                    // Versendet die erstellte Antwort über den Telegram-Client
+                    try {
+                        telegramClient.execute(antwort);
+                    } catch (TelegramApiException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-
                 // Empfangene Nachricht in der Konsole ausgeben
                 System.out.println("Nachricht empfangen: " + message);
             }
@@ -235,10 +235,10 @@ public class EscapeBot implements LongPollingUpdateConsumer {
         }
     }
 
-    public void sendDescription(Long chatId, String description){
+    public void sendDescription(Long chatId, String description) {
 
         SendMessage descriptionText = SendMessage.builder()
-                        .chatId(chatId)
+                .chatId(chatId)
                 .text(description)
                 .build();
         try {
