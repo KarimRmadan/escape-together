@@ -60,7 +60,8 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                         if (session != null) {
                             String roomcode = session.getRoomCode();
                             antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
-                        } else {
+                        }
+                        else {
                             antwortText = "Du bist bereits in einem aktiven Spiel";
                         }
                     }
@@ -92,49 +93,75 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                 sendPuzzleImage(player1ChatId, puzzle.getPlayer1Image());
                                 // Sendet Spieler 2 sein Rätselbild
                                 sendPuzzleImage(chatId, puzzle.getPlayer2Image());
-                            } else {
+                            }
+                            else {
                                 antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
                             }
 
-                        } else {
+                        }
+                        else {
                             antwortText = "Bitte gib einen Raumcode ein! Beispiel: /join a3f7";
                         }
                     }
 
+                    // Verarbeitet die eingegebene Lösung eines Spielers
                     case "/answer" -> {
+
+                        // Prüft, ob nach dem Befehl eine Antwort eingegeben wurde
                         if (parts.length > 1) {
+
+                            // Entfernt den Befehl /answer und überflüssige Leerzeichen
                             String answer = message.substring("/answer".length()).trim();
+
+                            // Sucht die Spielpartie anhand der Chat-ID des Spielers
                             GameSession session = gameService.getSessionByPlayer(chatId);
-                            if (session == null){
+
+                            // Prüft, ob der Spieler einer Spielpartie zugeordnet ist
+                            if (session == null) {
                                 antwortText = "Du bist in keinem aktiven Spiel!";
-                            }
-                            else {
+                            } else {
+
+                                // Prüft, ob die Spielpartie aktuell läuft
                                 if (session.getStatus() == GameStatus.RUNNING) {
-                                  Puzzle puzzle =  session.getCurrentPuzzle();
-                                  if (puzzle.checkSolution(answer)){
-                                      antwortText = "Richtig! Ihr habt das Rätsel gelöst!";
-                                      if (session.nextPuzzle()){
-                                          puzzle =  session.getCurrentPuzzle();
-                                          sendPuzzleImage(session.getPlayer1ChatId(), puzzle.getPlayer1Image());
-                                          sendPuzzleImage(session.getPlayer2ChatId(), puzzle.getPlayer2Image());
-                                      }else {
-                                          session.finishGame();
-                                          sendPuzzleImage(session.getPlayer1ChatId(), "images/abschluss.png");
-                                          sendPuzzleImage(session.getPlayer2ChatId(), "images/abschluss.png");
 
-                                      }
-                                  }
-                                  else {
-                                      antwortText = "Leider falsch! Versucht es erneut!";
-                                  }
+                                    // Holt das aktuelle Rätsel der Spielpartie
+                                    Puzzle puzzle = session.getCurrentPuzzle();
 
+                                    // Überprüft, ob die eingegebene Lösung richtig ist
+                                    if (puzzle.checkSolution(answer)) {
+                                        antwortText = "Richtig! Ihr habt das Rätsel gelöst!";
+
+                                        // Wechselt zum nächsten Rätsel, sofern eines vorhanden ist
+                                        if (session.nextPuzzle()) {
+
+                                            // Holt das neue Rätsel nach dem erfolgreichen Wechsel
+                                            puzzle = session.getCurrentPuzzle();
+
+                                            // Sendet beiden Spielern ihr jeweiliges Rätselbild
+                                            sendPuzzleImage(session.getPlayer1ChatId(), puzzle.getPlayer1Image());
+                                            sendPuzzleImage(session.getPlayer2ChatId(), puzzle.getPlayer2Image());
+
+                                        }
+                                        else {
+                                            // Beendet die Spielpartie, wenn alle Rätsel gelöst wurden
+                                            session.finishGame();
+
+                                            // Sendet beiden Spielern das Abschlussbild
+                                            sendPuzzleImage(session.getPlayer1ChatId(), "images/abschluss.png");
+                                            sendPuzzleImage(session.getPlayer2ChatId(), "images/abschluss.png");
+                                        }
+
+                                    }
+                                    else {
+                                        // Informiert den Spieler über eine falsche Lösung
+                                        antwortText = "Leider falsch! Versucht es erneut!";
+                                    }
                                 }
                             }
-                        }
-                        else {
+                        } else {
+                            // Fordert den Spieler auf, eine Lösung einzugeben
                             antwortText = "Bitte gib eine Lösung ein! Beispiel: /answer 1234";
                         }
-
                     }
 
                     // Zeigt die Spielbeschreibung an, wenn der Nutzer /help eingibt
