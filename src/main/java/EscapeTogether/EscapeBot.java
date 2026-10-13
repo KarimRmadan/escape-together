@@ -24,11 +24,15 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 
+import java.util.Set;
+import java.util.HashSet;
+
 
 public class EscapeBot implements LongPollingUpdateConsumer {
     private final TelegramClient telegramClient;
     // Verwaltet alle Spielpartien während der Laufzeit des Bots
     private final GameService gameService = new GameService();
+   private final Set<Long> waitingForRoomCode = new HashSet<>();
 
     public EscapeBot(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
@@ -52,6 +56,13 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Liest die Chat-ID aus, damit der Bot an den richtigen Chat antworten kann
                 Long chatId = update.getMessage().getChatId();
 
+                //prüft ob die chatId auf der warteliste steht
+                if (waitingForRoomCode.contains(chatId)){
+                    join(chatId,message.trim());
+                    waitingForRoomCode.remove(chatId);
+                    continue;
+                }
+
                 // Speichert den Antworttext abhängig vom eingegebenen Befehl
                 String antwortText = "";
 
@@ -64,9 +75,16 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                                 .callbackData("create_game")
                                 .build();
 
+                        InlineKeyboardButton joinButton = InlineKeyboardButton.builder()
+                                .text("Spiel beitreten")
+                                .callbackData("join_game")
+                                .build();
+
                         InlineKeyboardMarkup keyboard = InlineKeyboardMarkup.builder()
                                 .keyboardRow(new InlineKeyboardRow(createButton))
+                                .keyboardRow(new InlineKeyboardRow(joinButton))
                                 .build();
+
 
                         // Erstellt die Willkommensnachricht mit dem Button
                         SendMessage startMessage = SendMessage.builder()
@@ -82,55 +100,8 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                             throw new RuntimeException(e);
                         }
                     }
-                    // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
-                    case "/create" -> {
-                        GameSession session = gameService.createGame(chatId);
-                        if (session != null) {
-                            String roomcode = session.getRoomCode();
-                            antwortText = "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!";
-                        } else {
-                            antwortText = "Du bist bereits in einem aktiven Spiel";
-                        }
-                    }
 
                     // Versucht, Spieler 2 zur Partie hinzuzufügen und speichert das Ergebnis
-                    case "/join" -> {
-                        if (parts.length > 1) {
-                            String roomCode = parts[1];
-                            boolean success = gameService.joinGame(roomCode, chatId);
-
-                            if (success) {
-                                sendDescription(chatId, "Du bist dem Spiel erfolgreich beigetreten!");
-
-                                // Ermittelt die Chat-ID von Spieler 1 und benachrichtigt ihn über den Beitritt
-                                GameSession session = gameService.getSession(roomCode);
-                                Puzzle puzzle = session.getCurrentPuzzle();
-                                Long player1ChatId = session.getPlayer1ChatId();
-
-                                SendMessage benachrichtigung = SendMessage.builder()
-                                        .chatId(player1ChatId)
-                                        .text("Spieler 2 ist beigetreten")
-                                        .build();
-                                try {
-                                    telegramClient.execute(benachrichtigung);
-                                } catch (TelegramApiException e) {
-                                    throw new RuntimeException(e);
-                                }
-
-                                // Sendet Spieler 1 sein Rätselbild
-                                sendPuzzleImage(player1ChatId, puzzle.getPlayer1Image());
-                                sendDescription(player1ChatId, puzzle.getDescription());
-                                // Sendet Spieler 2 sein Rätselbild
-                                sendPuzzleImage(chatId, puzzle.getPlayer2Image());
-                                sendDescription(chatId, puzzle.getDescription());
-                            } else {
-                                antwortText = "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.";
-                            }
-
-                        } else {
-                            antwortText = "Bitte gib einen Raumcode ein! Beispiel: /join a3f7";
-                        }
-                    }
 
                     // Verarbeitet die eingegebene Lösung eines Spielers
                     case "/answer" -> {
@@ -236,64 +207,128 @@ public class EscapeBot implements LongPollingUpdateConsumer {
                 // Empfangene Nachricht in der Konsole ausgeben
                 System.out.println("Nachricht empfangen: " + message);
             }
+// Prüft, ob ein Inline-Button angeklickt wurde
             if (update.hasCallbackQuery()) {
-                String callbackData = update.getCallbackQuery()
-                        .getData();
+
+                // Liest aus, welcher Button gedrückt wurde
+                String callbackData = update.getCallbackQuery().getData();
+
+                // Ermittelt die Chat-ID des Spielers
                 Long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+                // Liest die eindeutige Callback-ID aus
+                String callbackId = update.getCallbackQuery().getId();
+
+                // Erstellt die Bestätigung für Telegram
+                AnswerCallbackQuery bestaetigung = AnswerCallbackQuery.builder()
+                        .callbackQueryId(callbackId)
+                        .build();
+
+                // Bestätigt den Button-Klick gegenüber Telegram
+                try {
+                    telegramClient.execute(bestaetigung);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
+
+                // Spieler möchte einen neuen Raum erstellen
                 if (callbackData.equals("create_game")) {
                     create(chatId);
-                    String callbackId = update.getCallbackQuery().getId();
-                    AnswerCallbackQuery bestaetigung = AnswerCallbackQuery.builder()
-                            .callbackQueryId(callbackId)
-                            .build();
+                }
+
+                // Spieler möchte einem bestehenden Raum beitreten
+                else if (callbackData.equals("join_game")) {
+
+                    // Merkt sich, dass dieser Spieler einen Raumcode eingeben soll
+                    waitingForRoomCode.add(chatId);
+
+                    // Fordert den Spieler zur Eingabe des Raumcodes auf
+                    sendDescription(chatId, "Bitte gib deinen vierstelligen Raumcode ein.");
                 }
             }
         }
     }
-        // Lädt ein Rätselbild und schließt den InputStream automatisch
-        private void sendPuzzleImage (Long chatId, String imagePath){
 
-            try (InputStream bild = getClass().getClassLoader()
-                    .getResourceAsStream(imagePath)) {
+    // Lädt ein Rätselbild und schließt den InputStream automatisch
+    private void sendPuzzleImage(Long chatId, String imagePath) {
 
-                if (bild == null) {
-                    System.out.println("Bild nicht gefunden: " + imagePath);
-                    return;
-                }
+        try (InputStream bild = getClass().getClassLoader()
+                .getResourceAsStream(imagePath)) {
 
-                SendPhoto foto = SendPhoto.builder()
-                        .chatId(chatId).photo(new InputFile(bild, "raetsel.png"))
-                        .build();
-
-                telegramClient.execute(foto);
-
-            } catch (Exception e) {
-                System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
+            if (bild == null) {
+                System.out.println("Bild nicht gefunden: " + imagePath);
+                return;
             }
+
+            SendPhoto foto = SendPhoto.builder()
+                    .chatId(chatId).photo(new InputFile(bild, "raetsel.png"))
+                    .build();
+
+            telegramClient.execute(foto);
+
+        } catch (Exception e) {
+            System.out.println("Fehler beim Verarbeiten des Bildes: " + e.getMessage());
         }
+    }
 
-        public void sendDescription (Long chatId, String description){
+    public void sendDescription(Long chatId, String description) {
 
-            SendMessage descriptionText = SendMessage.builder()
-                    .chatId(chatId)
-                    .text(description)
+        SendMessage descriptionText = SendMessage.builder()
+                .chatId(chatId)
+                .text(description)
+                .build();
+        try {
+            telegramClient.execute(descriptionText);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // Erstellt eine neue Escape-Room-Partie und sendet den Raumcode an Spieler 1
+    public void create(Long chatId) {
+        GameSession session = gameService.createGame(chatId);
+        if (session != null) {
+            String roomcode = session.getRoomCode();
+            sendDescription(chatId, "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!");
+
+        } else {
+            sendDescription(chatId, "Du bist bereits in einem aktiven Spiel");
+
+        }
+    }
+
+    public void join(Long chatId, String roomCode) {
+        boolean success = gameService.joinGame(roomCode, chatId);
+        if (success) {
+            sendDescription(chatId, "Du bist dem Spiel erfolgreich beigetreten!");
+
+            // Ermittelt die Chat-ID von Spieler 1 und benachrichtigt ihn über den Beitritt
+            GameSession session = gameService.getSession(roomCode);
+            Puzzle puzzle = session.getCurrentPuzzle();
+            Long player1ChatId = session.getPlayer1ChatId();
+
+            SendMessage benachrichtigung = SendMessage.builder()
+                    .chatId(player1ChatId)
+                    .text("Spieler 2 ist beigetreten")
                     .build();
             try {
-                telegramClient.execute(descriptionText);
+                telegramClient.execute(benachrichtigung);
             } catch (TelegramApiException e) {
                 throw new RuntimeException(e);
             }
-        }
 
-        public void create (Long chatId){
-            GameSession session = gameService.createGame(chatId);
-            if (session != null) {
-                String roomcode = session.getRoomCode();
-                sendDescription(chatId, "Dein Escape Room wurde erstellt!\nRaumcode: " + roomcode + "\nTeile diesen Code mit Spieler 2!");
+            // Sendet Spieler 1 sein Rätselbild
+            sendDescription(player1ChatId, puzzle.getDescription());
+            sendPuzzleImage(player1ChatId, puzzle.getPlayer1Image());
 
-            } else {
-                sendDescription(chatId, "Du bist bereits in einem aktiven Spiel");
+            // Sendet Spieler 2 sein Rätselbild
+            sendDescription(chatId, puzzle.getDescription());
+            sendPuzzleImage(chatId, puzzle.getPlayer2Image());
 
-            }
+        } else {
+            sendDescription(chatId, "Beitritt fehlgeschlagen! Raumcode ungültig oder Raum bereits voll.");
+
         }
     }
+}
+
